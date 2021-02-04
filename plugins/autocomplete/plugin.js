@@ -298,6 +298,15 @@
 				this.registerPanelNavigation();
 			}
 
+			editable.setAttributes({
+				"role": "combobox",
+				"aria-autocomplete": "list",
+				"aria-haspopup": "listbox",
+				"aria-expanded": "false",
+				"aria-controls": "popup_listbox",
+				"aria-activedescendant": "selected_option"
+			});
+
 			// Note: CKEditor's event system has a limitation that one function
 			// cannot be used as listener for the same event more than once. Hence, wrapper function.
 			// (#4107)
@@ -609,7 +618,7 @@
 		 * @readonly
 		 * @property {CKEDITOR.template}
 		 */
-		this.itemTemplate = new CKEDITOR.template( '<li data-id="{id}">{name}</li>' );
+		this.itemTemplate = new CKEDITOR.template( '<li data-id="{id}" role="option">{name}</li>' );
 
 		/**
 		 * The editor instance.
@@ -717,6 +726,8 @@
 		 */
 		close: function() {
 			this.element.removeClass( 'cke_autocomplete_opened' );
+
+			this.editor.editable().setAttribute('aria-expanded', 'false');
 		},
 
 		/**
@@ -727,6 +738,10 @@
 		 */
 		createElement: function() {
 			var el = new CKEDITOR.dom.element( 'ul', this.document );
+			el.setAttributes({
+				'role': 'listbox',
+				'id': 'popup_listbox'
+			});
 
 			el.addClass( 'cke_autocomplete_panel' );
 			// Below float panels and context menu, but above maximized editor (-5).
@@ -818,6 +833,7 @@
 		 */
 		open: function() {
 			this.element.addClass( 'cke_autocomplete_opened' );
+			this.editor.editable().setAttribute('aria-expanded', 'true');
 		},
 
 		/**
@@ -828,11 +844,17 @@
 		 */
 		selectItem: function( itemId ) {
 			if ( this.selectedItemId != null ) {
-				this.getItemById( this.selectedItemId ).removeClass( 'cke_autocomplete_selected' );
+				var item = this.getItemById( this.selectedItemId );
+
+				item.removeClass( 'cke_autocomplete_selected' );
+				item.removeAttribute('id');
+
 			}
 
 			var itemElement = this.getItemById( itemId );
+
 			itemElement.addClass( 'cke_autocomplete_selected' );
+			itemElement.setAttribute('id', 'selected_option');
 			this.selectedItemId = itemId;
 
 			this.scrollElementTo( itemElement );
